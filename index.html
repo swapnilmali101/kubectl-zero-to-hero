@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>kubectl Zero-To-Hero — A Hands-On 10-Day Roadmap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=SUSE:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+    :root {
+      --bg: #0b0e14;
+      --bg2: #111620;
+      --bg3: #161c27;
+      --border: #1e2a3a;
+      --border-bright: #2a3f58;
+      --accent: #00d4ff;
+      --accent2: #7effc4;
+      --accent3: #ff6b6b;
+      --text: #c8d8e8;
+      --text-muted: #617388;
+      --text-bright: #e8f4ff;
+      --code-bg: #0d1117;
+      --tag-bg: #0a2035;
+      --font-head: 'SUSE', sans-serif;
+      --font-mono: 'SUSE', sans-serif;
+      --font-body: 'SUSE', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── PROGRESS BAR ── */
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      z-index: 1000;
+      transition: width 0.1s linear;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      background: rgba(11,14,20,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 2rem;
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 1rem;
+    }
+    .nav-logo {
+      font-family: 'SUSE', monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.8rem;
+      font-family: 'SUSE', monospace;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── WRAPPER ── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.5rem 6rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 5rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3.5rem;
+      animation: fadeUp 0.8s ease both;
+    }
+    .hero-eyebrow {
+      font-family: 'SUSE', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 28px; height: 1px;
+      background: var(--accent);
+    }
+    .hero h1 {
+      font-family: 'SUSE', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      color: var(--text-bright);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 620px;
+      line-height: 1.7;
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+    .badge {
+      font-family: 'SUSE', monospace;
+      font-size: 0.72rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      background: var(--tag-bg);
+      border: 1px solid var(--border-bright);
+      color: var(--accent);
+    }
+    .badge.green { color: var(--accent2); border-color: #1a3d2e; background: #0a1f18; }
+    .badge.red { color: var(--accent3); border-color: #3d1a1a; background: #1f0a0a; }
+
+    /* ── TOC ── */
+    .toc-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.8rem 2rem;
+      margin-bottom: 3.5rem;
+      animation: fadeUp 0.9s 0.1s ease both;
+    }
+    .toc-block h2 {
+      font-family: 'SUSE', monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.4rem;
+    }
+    .toc-grid a {
+      font-family: 'SUSE', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.35rem 0.5rem;
+      border-radius: 4px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toc-grid a:hover { background: var(--bg3); color: var(--accent); }
+    .toc-grid a::before {
+      content: attr(data-day);
+      font-size: 0.65rem;
+      color: var(--accent);
+      opacity: 0.6;
+      min-width: 2ch;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      margin-bottom: 4rem;
+      animation: fadeUp 0.7s ease both;
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+      margin-bottom: 1.8rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .day-badge {
+      font-family: 'SUSE', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 0.25rem 0.55rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 0.4rem;
+      flex-shrink: 0;
+    }
+    .section h2 {
+      font-family: 'SUSE', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+    .goal-tag {
+      font-family: 'SUSE', monospace;
+      font-size: 0.72rem;
+      color: var(--accent2);
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-family: 'SUSE', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin: 2rem 0 0.8rem;
+    }
+
+    p { margin-bottom: 1rem; color: var(--text); }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    ul, ol {
+      padding-left: 1.4rem;
+      margin-bottom: 1rem;
+    }
+    li { margin-bottom: 0.35rem; }
+    li::marker { color: var(--accent); }
+
+    /* ── CODE ── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      margin: 1.2rem 0;
+      position: relative;
+    }
+    pre::before {
+      content: attr(data-label);
+      position: absolute;
+      top: 0.55rem;
+      right: 0.9rem;
+      font-family: 'SUSE', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    code {
+      font-family: 'SUSE', monospace;
+      font-size: 0.83rem;
+      line-height: 1.65;
+      color: #a8d8f0;
+    }
+    :not(pre) > code {
+      background: var(--tag-bg);
+      border: 1px solid var(--border-bright);
+      border-radius: 3px;
+      padding: 0.15em 0.45em;
+      font-size: 0.82em;
+      color: var(--accent);
+    }
+
+    /* ── TABLES ── */
+    .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th {
+      background: var(--bg3);
+      font-family: 'SUSE', monospace;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border-bright);
+      text-align: left;
+    }
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── CALLOUT ── */
+    .callout {
+      background: var(--bg2);
+      border: 1px solid var(--border-bright);
+      border-left: 3px solid var(--accent2);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 0.93rem;
+    }
+    .callout.warn { border-left-color: var(--accent3); }
+    .callout-label {
+      font-family: 'SUSE', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent2);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .callout.warn .callout-label { color: var(--accent3); }
+
+    /* ── CHECKPOINT ── */
+    .checkpoint {
+      background: linear-gradient(135deg, #0a1f15 0%, #081820 100%);
+      border: 1px solid #1a3a2a;
+      border-radius: 8px;
+      padding: 1.4rem 1.6rem;
+      margin-top: 2rem;
+    }
+    .checkpoint-label {
+      font-family: 'SUSE', monospace;
+      font-size: 0.72rem;
+      color: var(--accent2);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .checkpoint-label::before {
+      content: '✓';
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      background: var(--accent2);
+      color: #000;
+      border-radius: 50%;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+    .checkpoint ul { margin: 0; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+      margin: 3rem 0;
+    }
+
+    /* ── ROADMAP OVERVIEW ── */
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .roadmap-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .roadmap-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .roadmap-card-day {
+      font-family: 'SUSE', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+    .roadmap-card-title {
+      font-family: 'SUSE', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 0.3rem;
+    }
+    .roadmap-card-goal {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* ── RESOURCES ── */
+    .resources-grid {
+      display: grid;
+      gap: 0.6rem;
+      margin: 1.2rem 0;
+    }
+    .resource-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.8rem 1.1rem;
+      transition: border-color 0.2s;
+    }
+    .resource-item:hover { border-color: var(--accent); }
+    .resource-item a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-bright);
+      flex: 1;
+      text-decoration: none;
+    }
+    .resource-item a:hover { color: var(--accent); }
+    .resource-url {
+      font-family: 'SUSE', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ── QUICK REF ── */
+    .quick-ref {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+    .quick-ref-header {
+      background: var(--bg3);
+      padding: 0.7rem 1.2rem;
+      font-family: 'SUSE', monospace;
+      font-size: 0.72rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .quick-ref-header::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .footer-inner { max-width: 860px; margin: 0 auto; }
+    .footer-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .footer-link {
+      font-family: 'SUSE', monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero { padding: 3rem 0 2rem; }
+      .section-header { flex-direction: column; gap: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">☸ kubectl-zero-to-hero</a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#day1">Day 1</a></li>
+      <li><a href="#day5">Day 5</a></li>
+      <li><a href="#day10">Day 10</a></li>
+      <li><a href="#resources">Resources</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-eyebrow">DevOps · Kubernetes · CLI</div>
+    <h1>☸ kubectl <span>Zero-To-Hero</span></h1>
+    <p class="hero-desc">
+      Learn kubectl from absolute zero to production-ready confidence in <strong>10 focused days</strong>.
+      Each day has a clear goal, key concepts, commands to practice, and a checkpoint task to commit to your repo.
+    </p>
+    <div class="hero-meta">
+      <span class="badge">10 Days</span>
+      <span class="badge green">Beginner → Production</span>
+      <span class="badge">Hands-On</span>
+      <span class="badge red">No Prior K8s Experience Needed</span>
+    </div>
+  </header>
+
+  <!-- TOC -->
+  <div class="toc-block">
+    <h2>Contents</h2>
+    <div class="toc-grid">
+      <a href="#prereqs" data-day="00">Prerequisites</a>
+      <a href="#overview" data-day="→">Roadmap Overview</a>
+      <a href="#day1" data-day="01">Why kubectl Exists</a>
+      <a href="#day2" data-day="02">First Commands</a>
+      <a href="#day3" data-day="03">Pods</a>
+      <a href="#day4" data-day="04">Deployments & ReplicaSets</a>
+      <a href="#day5" data-day="05">Services & Networking</a>
+      <a href="#day6" data-day="06">Config & Secrets</a>
+      <a href="#day7" data-day="07">Debugging Like a Pro</a>
+      <a href="#day8" data-day="08">YAML Mastery</a>
+      <a href="#day9" data-day="09">Multiple Environments</a>
+      <a href="#day10" data-day="10">Mini Project</a>
+      <a href="#resources" data-day="→">Useful Resources</a>
+      <a href="#quickref" data-day="→">Quick Reference</a>
+    </div>
+  </div>
+
+  <!-- PREREQUISITES -->
+  <section class="section" id="prereqs">
+    <div class="section-header">
+      <div>
+        <div class="goal-tag">// Before You Begin</div>
+        <h2>Prerequisites</h2>
+      </div>
+    </div>
+    <p>You don't need any Kubernetes experience. You just need:</p>
+    <ul>
+      <li>A terminal (Linux / macOS / WSL on Windows)</li>
+      <li>Basic command-line comfort (<code>cd</code>, <code>ls</code>, <code>cat</code>)</li>
+      <li>A cluster to practice on — pick one:</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Option</th><th>Description</th><th>Link</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Minikube</strong></td><td>Runs locally on your machine</td><td><a href="https://minikube.sigs.k8s.io/docs/start/" target="_blank">minikube.sigs.k8s.io</a></td></tr>
+          <tr><td><strong>Kind</strong></td><td>Kubernetes in Docker</td><td><a href="https://kind.sigs.k8s.io/" target="_blank">kind.sigs.k8s.io</a></td></tr>
+          <tr><td><strong>k3s</strong></td><td>Lightweight, great for VMs</td><td><a href="https://k3s.io/" target="_blank">k3s.io</a></td></tr>
+          <tr><td><strong>Play with K8s</strong></td><td>Free browser-based cluster</td><td><a href="https://labs.play-with-k8s.com/" target="_blank">play-with-k8s.com</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- HOW TO USE -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="goal-tag">// Getting Started</div>
+        <h2>How to Use This Guide</h2>
+      </div>
+    </div>
+    <ol>
+      <li><strong>Fork or clone this repo</strong> to track your progress</li>
+      <li><strong>Work through one day at a time</strong> — don't skip ahead</li>
+      <li><strong>Run every command yourself</strong> — reading is not enough</li>
+      <li><strong>Complete the checkpoint</strong> at the end of each day</li>
+      <li><strong>Commit your work</strong> — push your YAML files and notes as you go</li>
+    </ol>
+    <h3>Suggested Repo Structure</h3>
+    <pre data-label="Directory Tree"><code>kubectl-learning/
+├── README.md
+├── day-01/
+│   └── notes.md
+├── day-02/
+│   └── notes.md
+├── day-03/
+│   ├── my-first-pod.yaml
+│   └── notes.md
+├── day-04/
+│   ├── deployment.yaml
+│   └── notes.md
+...
+└── day-10/
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── configmap.yaml
+    ├── secret.yaml
+    └── notes.md</code></pre>
+  </section>
+
+  <!-- ROADMAP OVERVIEW -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <div>
+        <div class="goal-tag">// Big Picture</div>
+        <h2>Roadmap Overview</h2>
+      </div>
+    </div>
+    <div class="roadmap-grid">
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 1</div><div class="roadmap-card-title">Why kubectl Exists</div><div class="roadmap-card-goal">Understand the problem it solves</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 2</div><div class="roadmap-card-title">First Commands</div><div class="roadmap-card-goal">Get comfortable with the CLI</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 3</div><div class="roadmap-card-title">Pods</div><div class="roadmap-card-goal">Understand what actually runs</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 4</div><div class="roadmap-card-title">Deployments & ReplicaSets</div><div class="roadmap-card-goal">Run apps the Kubernetes way</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 5</div><div class="roadmap-card-title">Services & Networking</div><div class="roadmap-card-goal">Make apps reachable</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 6</div><div class="roadmap-card-title">Config & Secrets</div><div class="roadmap-card-goal">Stop hardcoding configs</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 7</div><div class="roadmap-card-title">Debugging</div><div class="roadmap-card-goal">Be useful during outages</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 8</div><div class="roadmap-card-title">YAML Mastery</div><div class="roadmap-card-goal">Read & write manifests confidently</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 9</div><div class="roadmap-card-title">Multiple Environments</div><div class="roadmap-card-goal">Real-world kubectl usage</div></div>
+      <div class="roadmap-card"><div class="roadmap-card-day">Day 10</div><div class="roadmap-card-title">Mini Project</div><div class="roadmap-card-goal">Cement everything</div></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- DAY 1 -->
+  <section class="section" id="day1">
+    <div class="section-header">
+      <span class="day-badge">DAY 01</span>
+      <div>
+        <div class="goal-tag">// Goal: Understand the problem kubectl solves before touching any commands</div>
+        <h2>Why kubectl Exists</h2>
+      </div>
+    </div>
+    <h3>Concepts</h3>
+    <ul>
+      <li><strong>Kubernetes</strong> manages containers across multiple machines. It has two parts:
+        <ul>
+          <li><strong>Control plane</strong> — the brain (API server, scheduler, etcd)</li>
+          <li><strong>Nodes</strong> — the workers that actually run your containers</li>
+        </ul>
+      </li>
+      <li><strong>kubectl</strong> is a command-line tool that talks to the Kubernetes API server</li>
+      <li><strong>Declarative vs Imperative:</strong>
+        <ul>
+          <li><em>Imperative</em> — "Do this now" (<code>kubectl run</code>, <code>kubectl delete</code>)</li>
+          <li><em>Declarative</em> — "Here's what I want, make it so" (<code>kubectl apply -f file.yaml</code>)</li>
+        </ul>
+      </li>
+    </ul>
+    <h3>Setup</h3>
+    <pre data-label="Shell"><code># macOS
+brew install kubectl
+
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+
+# Verify
+kubectl version --client</code></pre>
+    <pre data-label="Shell"><code># Start a local cluster (choose one)
+minikube start       # Minikube
+kind create cluster  # Kind
+
+# Verify cluster access
+kubectl cluster-info
+kubectl get nodes</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 1 Checkpoint</div>
+      <ul>
+        <li>kubectl installed and <code>kubectl version --client</code> shows output</li>
+        <li>Cluster running and <code>kubectl get nodes</code> shows a Ready node</li>
+        <li>Create <code>day-01/notes.md</code>: explain what is the API server and why kubectl talks to it</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 2 -->
+  <section class="section" id="day2">
+    <div class="section-header">
+      <span class="day-badge">DAY 02</span>
+      <div>
+        <div class="goal-tag">// Goal: Get comfortable navigating a cluster from the CLI</div>
+        <h2>First kubectl Commands</h2>
+      </div>
+    </div>
+    <h3>Core Commands</h3>
+    <pre data-label="Shell"><code># List resources
+kubectl get pods
+kubectl get nodes
+kubectl get all
+
+# Get more details
+kubectl get pods -o wide          # shows IP, node
+kubectl get pods -o yaml          # full YAML output
+
+# Inspect a specific resource
+kubectl describe pod &lt;pod-name&gt;   # human-readable details + events
+
+# Understand any resource
+kubectl explain pod
+kubectl explain pod.spec
+kubectl explain deployment.spec.template</code></pre>
+    <h3>Namespaces</h3>
+    <p>Namespaces are like folders — they group and isolate resources.</p>
+    <pre data-label="Shell"><code>kubectl get namespaces
+kubectl get pods --namespace kube-system   # system pods
+kubectl get pods -n kube-system            # shorthand
+kubectl get pods --all-namespaces          # everything</code></pre>
+    <h3>Contexts & Clusters</h3>
+    <p>A <strong>context</strong> = cluster + user + namespace. Useful when you have multiple clusters.</p>
+    <pre data-label="Shell"><code>kubectl config view                        # see all contexts
+kubectl config current-context            # which context is active
+kubectl config use-context &lt;name&gt;         # switch context
+kubectl config get-contexts               # list all contexts</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 2 Checkpoint</div>
+      <ul>
+        <li>Run <code>kubectl get all -n kube-system</code> and understand what you see</li>
+        <li>Use <code>kubectl explain</code> on at least 3 different resources</li>
+        <li>Create <code>day-02/notes.md</code>: What's the difference between <code>get</code> and <code>describe</code>?</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 3 -->
+  <section class="section" id="day3">
+    <div class="section-header">
+      <span class="day-badge">DAY 03</span>
+      <div>
+        <div class="goal-tag">// Goal: Understand what actually runs in Kubernetes</div>
+        <h2>Pods — The Core Unit</h2>
+      </div>
+    </div>
+    <h3>What is a Pod?</h3>
+    <ul>
+      <li>The <strong>smallest deployable unit</strong> in Kubernetes</li>
+      <li>Wraps one or more containers that share network and storage</li>
+      <li>Pods are <strong>ephemeral</strong> — they die and don't come back on their own</li>
+      <li>You rarely create pods directly in production (use Deployments instead)</li>
+    </ul>
+    <h3>Pod Lifecycle</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Phase</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>Pending</code></td><td>Scheduled but container not started yet</td></tr>
+          <tr><td><code>Running</code></td><td>At least one container is running</td></tr>
+          <tr><td><code>Succeeded</code></td><td>All containers exited successfully</td></tr>
+          <tr><td><code>Failed</code></td><td>At least one container exited with error</td></tr>
+          <tr><td><code>Unknown</code></td><td>Node communication lost</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Create a Pod (Declarative YAML)</h3>
+    <pre data-label="day-03/my-first-pod.yaml"><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: demo
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    ports:
+    - containerPort: 80</code></pre>
+    <pre data-label="Shell"><code># Apply the manifest
+kubectl apply -f day-03/my-first-pod.yaml
+
+# Logs & exec
+kubectl logs my-pod
+kubectl logs my-pod -f                    # follow live
+kubectl logs my-pod --previous            # last crashed container
+kubectl exec -it my-pod -- /bin/bash
+
+# Clean up
+kubectl delete pod my-pod</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 3 Checkpoint</div>
+      <ul>
+        <li>Create a pod using YAML and commit to <code>day-03/</code></li>
+        <li>Shell into the pod and run a command</li>
+        <li>Create <code>day-03/notes.md</code>: Why are pods ephemeral, and why does that matter?</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 4 -->
+  <section class="section" id="day4">
+    <div class="section-header">
+      <span class="day-badge">DAY 04</span>
+      <div>
+        <div class="goal-tag">// Goal: Run apps the right way in Kubernetes</div>
+        <h2>Deployments & ReplicaSets</h2>
+      </div>
+    </div>
+    <h3>Why Not Just Use Pods?</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Problem</th><th>What Happens</th></tr></thead>
+        <tbody>
+          <tr><td>Pod crashes</td><td>It's gone — nothing restarts it</td></tr>
+          <tr><td>Need 3 copies</td><td>You have to create 3 pods manually</td></tr>
+          <tr><td>Want to update your app</td><td>You have to delete and recreate pods</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Deployments</strong> solve all of this. A ReplicaSet ensures N copies of a pod always run; a Deployment manages ReplicaSets and handles updates.</p>
+    <pre data-label="day-04/deployment.yaml"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80</code></pre>
+    <pre data-label="Shell"><code># Scale
+kubectl scale deployment my-app --replicas=5
+
+# Rolling update
+kubectl set image deployment/my-app nginx=nginx:1.26
+kubectl rollout status deployment/my-app
+kubectl rollout history deployment/my-app
+
+# Rollback
+kubectl rollout undo deployment/my-app
+kubectl rollout undo deployment/my-app --to-revision=1</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 4 Checkpoint</div>
+      <ul>
+        <li>Deploy 3 replicas, then scale to 5</li>
+        <li>Do a rolling update and watch <code>kubectl rollout status</code></li>
+        <li>Roll back and confirm the old image is running</li>
+        <li>Commit <code>day-04/deployment.yaml</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 5 -->
+  <section class="section" id="day5">
+    <div class="section-header">
+      <span class="day-badge">DAY 05</span>
+      <div>
+        <div class="goal-tag">// Goal: Make your application reachable</div>
+        <h2>Services & Networking</h2>
+      </div>
+    </div>
+    <p>Pods have IP addresses, but they change when pods restart. You need a <strong>stable endpoint</strong> to reach your app — that's what a <strong>Service</strong> is.</p>
+    <h3>Service Types</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Access</th><th>When to Use</th></tr></thead>
+        <tbody>
+          <tr><td><code>ClusterIP</code></td><td>Inside cluster only (default)</td><td>Internal microservices</td></tr>
+          <tr><td><code>NodePort</code></td><td>Via node IP + port (30000-32767)</td><td>Local dev / testing</td></tr>
+          <tr><td><code>LoadBalancer</code></td><td>External IP via cloud load balancer</td><td>Production on cloud</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre data-label="day-05/service.yaml"><code>apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-svc
+spec:
+  selector:
+    app: my-app        # matches pods with this label
+  ports:
+  - port: 80           # service port
+    targetPort: 80     # container port
+  type: NodePort</code></pre>
+    <pre data-label="Shell"><code>kubectl apply -f day-05/service.yaml
+
+# On Minikube
+minikube service my-app-svc --url
+
+# Port-forward (works on any cluster)
+kubectl port-forward svc/my-app-svc 8080:80
+# Open http://localhost:8080</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 5 Checkpoint</div>
+      <ul>
+        <li>Expose your deployment and reach it from browser or <code>curl</code></li>
+        <li>Commit <code>day-05/service.yaml</code></li>
+        <li>Create <code>day-05/notes.md</code>: What would happen if a pod's label didn't match the service selector?</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 6 -->
+  <section class="section" id="day6">
+    <div class="section-header">
+      <span class="day-badge">DAY 06</span>
+      <div>
+        <div class="goal-tag">// Goal: Never hardcode configuration again</div>
+        <h2>Config & Secrets</h2>
+      </div>
+    </div>
+    <h3>ConfigMaps</h3>
+    <p>Store non-sensitive config (URLs, feature flags, settings).</p>
+    <pre data-label="day-06/configmap.yaml"><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  DATABASE_URL: "postgres://db-service:5432/mydb"</code></pre>
+    <h3>Secrets</h3>
+    <p>Store sensitive data (passwords, tokens, API keys). Values are base64-encoded — but can be encrypted at rest.</p>
+    <pre data-label="Shell"><code>kubectl create secret generic db-secret \
+  --from-literal=DB_PASSWORD=supersecret \
+  --from-literal=API_KEY=myapikey123
+
+# Decode a value
+kubectl get secret db-secret -o jsonpath='{.data.DB_PASSWORD}' | base64 -d</code></pre>
+    <h3>Use Config in a Deployment</h3>
+    <pre data-label="YAML Snippet"><code>env:
+- name: APP_ENV
+  valueFrom:
+    configMapKeyRef:
+      name: app-config
+      key: APP_ENV
+- name: DB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: db-secret
+      key: DB_PASSWORD</code></pre>
+    <div class="callout warn">
+      <div class="callout-label">⚠ Security Note</div>
+      Never commit real secrets to Git. Use tools like Sealed Secrets, External Secrets, or Vault for production.
+    </div>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 6 Checkpoint</div>
+      <ul>
+        <li>Create a ConfigMap and a Secret</li>
+        <li>Deploy an app that reads from both</li>
+        <li>Verify: <code>kubectl exec -it &lt;pod&gt; -- env | grep APP_ENV</code></li>
+        <li>Commit <code>day-06/configmap.yaml</code> (never commit real secrets!)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 7 -->
+  <section class="section" id="day7">
+    <div class="section-header">
+      <span class="day-badge">DAY 07</span>
+      <div>
+        <div class="goal-tag">// Goal: Be useful when things break</div>
+        <h2>Debugging Like a Pro</h2>
+      </div>
+    </div>
+    <h3>The Debug Workflow</h3>
+    <pre data-label="Mental Model"><code>1. kubectl get pods           → Is the pod running?
+2. kubectl describe pod       → What events happened?
+3. kubectl logs               → What did the app say?
+4. kubectl exec               → Can I get inside?</code></pre>
+    <h3>Common Problems</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Error</th><th>Common Causes</th><th>Debug Command</th></tr></thead>
+        <tbody>
+          <tr><td><code>CrashLoopBackOff</code></td><td>App crash, bad config, missing env vars</td><td><code>kubectl logs &lt;pod&gt; --previous</code></td></tr>
+          <tr><td><code>ImagePullBackOff</code></td><td>Wrong image name/tag, private registry</td><td><code>kubectl describe pod &lt;pod&gt;</code></td></tr>
+          <tr><td><code>Pending</code></td><td>Insufficient resources, node selector mismatch</td><td><code>kubectl describe pod &lt;pod&gt;</code></td></tr>
+          <tr><td><code>OOMKilled</code></td><td>Memory limit too low, memory leak</td><td><code>kubectl describe pod &lt;pod&gt;</code> → Last State</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre data-label="Shell"><code># Watch pods in real time
+kubectl get pods -w
+
+# Get events for the whole namespace
+kubectl get events --sort-by=.lastTimestamp
+
+# Run a temporary debug pod
+kubectl run debug --image=busybox --rm -it --restart=Never -- sh
+
+# Check resource usage (requires metrics-server)
+kubectl top pods
+kubectl top nodes</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 7 Checkpoint</div>
+      <ul>
+        <li>Deliberately break a deployment (wrong image tag, e.g. <code>nginx:doesnotexist</code>)</li>
+        <li>Debug it using only <code>describe</code>, <code>logs</code>, and <code>events</code></li>
+        <li>Fix it with a correct image and do a rollout</li>
+        <li>Create <code>day-07/notes.md</code>: Walk through your debug session step by step</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 8 -->
+  <section class="section" id="day8">
+    <div class="section-header">
+      <span class="day-badge">DAY 08</span>
+      <div>
+        <div class="goal-tag">// Goal: Read and write Kubernetes manifests confidently</div>
+        <h2>YAML Mastery</h2>
+      </div>
+    </div>
+    <h3>The 4 Top-Level Fields</h3>
+    <pre data-label="YAML Structure"><code>apiVersion: apps/v1   # API group + version
+kind: Deployment      # resource type
+metadata:             # name, namespace, labels, annotations
+  name: my-app
+  namespace: default
+  labels:
+    app: my-app
+    env: production
+  annotations:
+    description: "My production app"
+spec:                 # desired state — differs per resource type
+  ...</code></pre>
+    <h3>Labels vs Annotations</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Labels</th><th>Annotations</th></tr></thead>
+        <tbody>
+          <tr><td>Purpose</td><td>Selection & grouping</td><td>Metadata & documentation</td></tr>
+          <tr><td>Used by</td><td>Selectors, services</td><td>Tools, humans</td></tr>
+          <tr><td>Queryable</td><td>Yes (<code>-l app=my-app</code>)</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Resource Requests & Limits</h3>
+    <pre data-label="YAML Snippet"><code>resources:
+  requests:          # minimum guaranteed
+    cpu: "100m"      # 100 millicores = 0.1 CPU
+    memory: "128Mi"
+  limits:            # maximum allowed
+    cpu: "500m"
+    memory: "256Mi"</code></pre>
+    <h3>Liveness & Readiness Probes</h3>
+    <pre data-label="YAML Snippet"><code>livenessProbe:       # if this fails → restart container
+  httpGet:
+    path: /healthz
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 5
+readinessProbe:      # if this fails → remove from Service endpoints
+  httpGet:
+    path: /ready
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 3</code></pre>
+    <pre data-label="Shell"><code># Dry run — validate without applying
+kubectl apply -f my-file.yaml --dry-run=client
+kubectl apply -f my-file.yaml --dry-run=server
+
+# See what would change
+kubectl diff -f my-file.yaml</code></pre>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 8 Checkpoint</div>
+      <ul>
+        <li>Write a complete Deployment YAML from scratch (no copy-paste)</li>
+        <li>Include: resource limits, a liveness probe, labels, annotations</li>
+        <li>Validate with <code>--dry-run=client</code> before applying</li>
+        <li>Commit as <code>day-08/deployment-with-probes.yaml</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 9 -->
+  <section class="section" id="day9">
+    <div class="section-header">
+      <span class="day-badge">DAY 09</span>
+      <div>
+        <div class="goal-tag">// Goal: Manage apps across dev, staging, and production</div>
+        <h2>Working with Multiple Environments</h2>
+      </div>
+    </div>
+    <pre data-label="Shell"><code># Create namespaces
+kubectl create namespace dev
+kubectl create namespace staging
+kubectl create namespace production
+
+# Deploy to a specific namespace
+kubectl apply -f deployment.yaml -n dev
+kubectl apply -f deployment.yaml -n staging
+
+# View resources per namespace
+kubectl get all -n dev</code></pre>
+    <h3>Context Switching</h3>
+    <pre data-label="Shell"><code>kubectl config get-contexts
+kubectl config use-context my-prod-cluster
+kubectl config set-context --current --namespace=dev
+kubectl config rename-context old-name new-name</code></pre>
+    <div class="callout">
+      <div class="callout-label">💡 Tip: kubectx + kubens</div>
+      Install <code>kubectx</code> and <code>kubens</code> for much faster context and namespace switching:<br><br>
+      <code>brew install kubectx</code><br>
+      <code>kubectx my-prod</code> — switch cluster<br>
+      <code>kubens dev</code> — switch namespace
+    </div>
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 9 Checkpoint</div>
+      <ul>
+        <li>Create <code>dev</code> and <code>staging</code> namespaces</li>
+        <li>Deploy your app to both with different ConfigMap values</li>
+        <li>Practice switching between them</li>
+        <li>Create <code>day-09/notes.md</code>: How would you prevent accidental <code>kubectl delete</code> in production?</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DAY 10 -->
+  <section class="section" id="day10">
+    <div class="section-header">
+      <span class="day-badge">DAY 10</span>
+      <div>
+        <div class="goal-tag">// Goal: Tie everything together into one real-world workflow</div>
+        <h2>Mini Project</h2>
+      </div>
+    </div>
+    <h3>What You'll Build</h3>
+    <pre data-label="Architecture"><code>nginx (web server)
+  ├── Deployment (3 replicas)
+  ├── Service (NodePort)
+  ├── ConfigMap (app settings)
+  └── Secret (fake API key)</code></pre>
+
+    <h3>Step 1 — Create the Namespace</h3>
+    <pre data-label="Shell"><code>kubectl create namespace mini-project</code></pre>
+
+    <h3>Step 2 — Apply All Manifests</h3>
+    <pre data-label="day-10/configmap.yaml"><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_NAME: "My kubectl App"
+  LOG_LEVEL: "info"</code></pre>
+    <pre data-label="day-10/secret.yaml"><code>apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+type: Opaque
+data:
+  API_KEY: bXlzZWNyZXRrZXkxMjM=   # base64 of "mysecretkey123"</code></pre>
+    <pre data-label="day-10/deployment.yaml"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_NAME
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: API_KEY
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5</code></pre>
+    <pre data-label="day-10/service.yaml"><code>apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-svc
+spec:
+  selector:
+    app: my-app
+  ports:
+  - port: 80
+    targetPort: 80
+  type: NodePort</code></pre>
+
+    <h3>Step 3 — Verify & Access</h3>
+    <pre data-label="Shell"><code>kubectl apply -f day-10/ -n mini-project
+kubectl get all -n mini-project
+kubectl port-forward svc/my-app-svc 8080:80 -n mini-project
+curl http://localhost:8080</code></pre>
+
+    <h3>Step 4 — Rolling Update</h3>
+    <pre data-label="Shell"><code>kubectl set image deployment/my-app nginx=nginx:1.26 -n mini-project
+kubectl rollout status deployment/my-app -n mini-project</code></pre>
+
+    <h3>Step 5 — Break It & Debug It</h3>
+    <pre data-label="Shell"><code># Set a bad image
+kubectl set image deployment/my-app nginx=nginx:thisdoesnotexist -n mini-project
+
+# Debug
+kubectl get pods -n mini-project
+kubectl describe pod &lt;pod-name&gt; -n mini-project
+
+# Roll back
+kubectl rollout undo deployment/my-app -n mini-project
+kubectl rollout status deployment/my-app -n mini-project</code></pre>
+
+    <div class="checkpoint">
+      <div class="checkpoint-label">Day 10 Checkpoint</div>
+      <ul>
+        <li>All 4 manifests applied and app is reachable</li>
+        <li>Rolling update completed successfully</li>
+        <li>Deliberately broken, debugged, and rolled back</li>
+        <li>Everything committed to <code>day-10/</code></li>
+        <li>Write <code>day-10/notes.md</code>: What was the hardest part? What clicked?</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- QUICK REFERENCE -->
+  <section class="section" id="quickref">
+    <div class="section-header">
+      <div>
+        <div class="goal-tag">// Bookmark This</div>
+        <h2>Quick Reference</h2>
+      </div>
+    </div>
+    <div class="quick-ref">
+      <div class="quick-ref-header">Most Used Commands</div>
+      <pre style="border:none;border-radius:0;margin:0;padding:1.5rem"><code># Get resources
+kubectl get pods / nodes / deployments / svc / configmaps / secrets / all
+
+# Inspect
+kubectl describe &lt;resource&gt; &lt;name&gt;
+kubectl logs &lt;pod-name&gt; [-f] [--previous]
+kubectl exec -it &lt;pod-name&gt; -- /bin/bash
+
+# Apply & manage
+kubectl apply -f &lt;file.yaml&gt;
+kubectl delete -f &lt;file.yaml&gt;
+kubectl delete pod/svc/deployment &lt;name&gt;
+
+# Deployments
+kubectl scale deployment &lt;name&gt; --replicas=&lt;n&gt;
+kubectl set image deployment/&lt;name&gt; &lt;container&gt;=&lt;image&gt;:&lt;tag&gt;
+kubectl rollout status / history / undo deployment/&lt;name&gt;
+
+# Namespaces & contexts
+kubectl get all -n &lt;namespace&gt;
+kubectl config use-context &lt;name&gt;
+kubectl config set-context --current --namespace=&lt;ns&gt;
+
+# Debug
+kubectl get events --sort-by=.lastTimestamp
+kubectl run debug --image=busybox --rm -it --restart=Never -- sh
+kubectl apply -f file.yaml --dry-run=client</code></pre>
+    </div>
+  </section>
+
+  <!-- WHAT YOU'LL KNOW -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="goal-tag">// After Completion</div>
+        <h2>What You'll Know</h2>
+      </div>
+    </div>
+    <ul>
+      <li>Confident with kubectl in daily use</li>
+      <li>Understand Kubernetes primitives: Pod, Deployment, Service, ConfigMap, Secret</li>
+      <li>Debug real production issues systematically</li>
+      <li>Manage apps across multiple environments</li>
+      <li>Write clean, production-ready YAML</li>
+      <li>Ready for real Kubernetes work</li>
+    </ul>
+  </section>
+
+  <!-- RESOURCES -->
+  <section class="section" id="resources">
+    <div class="section-header">
+      <div>
+        <div class="goal-tag">// Keep Learning</div>
+        <h2>Useful Resources</h2>
+      </div>
+    </div>
+    <div class="resources-grid">
+      <div class="resource-item"><a href="https://kubernetes.io/docs/reference/kubectl/" target="_blank">Official kubectl Docs</a><span class="resource-url">kubernetes.io</span></div>
+      <div class="resource-item"><a href="https://kubernetes.io/docs/reference/kubectl/cheatsheet/" target="_blank">kubectl Cheat Sheet</a><span class="resource-url">kubernetes.io</span></div>
+      <div class="resource-item"><a href="https://kubernetes.io/docs/concepts/" target="_blank">Kubernetes Concepts</a><span class="resource-url">kubernetes.io</span></div>
+      <div class="resource-item"><a href="https://minikube.sigs.k8s.io/docs/start/" target="_blank">Minikube Getting Started</a><span class="resource-url">minikube.sigs.k8s.io</span></div>
+      <div class="resource-item"><a href="https://kind.sigs.k8s.io/docs/user/quick-start/" target="_blank">Kind Quickstart</a><span class="resource-url">kind.sigs.k8s.io</span></div>
+      <div class="resource-item"><a href="https://kubernetes.io/docs/tutorials/kubernetes-basics/" target="_blank">Interactive Kubernetes Tutorial</a><span class="resource-url">kubernetes.io</span></div>
+      <div class="resource-item"><a href="https://github.com/ahmetb/kubectx" target="_blank">kubectx / kubens</a><span class="resource-url">github.com/ahmetb</span></div>
+    </div>
+  </section>
+
+</div><!-- /wrapper -->
+
+<footer>
+  <div class="footer-inner">
+    <p class="footer-text">Made with ❤️ by <a href="https://github.com/swapnilmali101" target="_blank">swapnilmali101</a> · Licensed under MIT</p>
+    <a class="footer-link" href="https://github.com/swapnilmali101/kubectl-zero-to-hero" target="_blank">☸ github.com/swapnilmali101/kubectl-zero-to-hero</a>
+  </div>
+</footer>
+
+<script>
+  // Reading progress bar
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+  });
+
+  // Staggered section animations on scroll
+  const sections = document.querySelectorAll('.section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05 });
+
+  sections.forEach((s, i) => {
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(24px)';
+    s.style.transition = `opacity 0.55s ${i * 0.03}s ease, transform 0.55s ${i * 0.03}s ease`;
+    observer.observe(s);
+  });
+</script>
+</body>
+</html>
