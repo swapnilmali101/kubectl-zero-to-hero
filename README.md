@@ -1039,7 +1039,7 @@ If this roadmap helped you, please consider **starring this repository** — it 
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — you are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of this material, provided the original author credit is retained. See the [LICENSE](./LICENSE) file for full details.
+This project is open source and available under the [MIT License](LICENSE).
 
 -----
 
